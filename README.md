@@ -328,15 +328,5 @@ Polish UI, deploy services, and measure accuracy.
 
 ---
 
-## 🏁 One‑Line Pitch
 
-> *An agent‑driven healthcare AI that listens to patients, understands clinical intent, maps notes to ICD‑10 codes, and assists doctors with safe, explainable, and human‑approved medical documentation.*
-
----
-
-## 📌 Hackathon Note
-
-This project is a **prototype** showcasing feasibility, safety, and real‑world impact. It follows strict **human‑in‑the‑loop** principles and is designed for responsible AI adoption in healthcare.
-
----
 
