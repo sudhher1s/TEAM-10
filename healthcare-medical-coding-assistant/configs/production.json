@@ -1,0 +1,26 @@
+{
+  "environment": "production",
+  "database": {
+    "host": "prod-db.example.com",
+    "port": 5432,
+    "username": "prod_user",
+    "password": "secure_password",
+    "database": "healthcare_db"
+  },
+  "api": {
+    "base_url": "https://api.healthcare.example.com",
+    "timeout": 5000
+  },
+  "logging": {
+    "level": "info",
+    "file": "/var/log/healthcare-app.log"
+  },
+  "security": {
+    "jwt_secret": "your_jwt_secret",
+    "token_expiry": "1h"
+  },
+  "features": {
+    "enable_audit_logging": true,
+    "enable_health_check": true
+  }
+}

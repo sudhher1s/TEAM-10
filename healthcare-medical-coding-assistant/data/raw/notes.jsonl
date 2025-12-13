@@ -1,0 +1,3 @@
+{"note_id": "1", "patient_id": "12345", "text": "Patient presents with a cough and fever. History of asthma.", "date": "2023-01-15", "provider": "Dr. Smith", "diagnosis": "Upper respiratory infection", "icd_code": "J00"}
+{"note_id": "2", "patient_id": "67890", "text": "Follow-up visit for diabetes management. Blood sugar levels are stable.", "date": "2023-01-20", "provider": "Dr. Jones", "diagnosis": "Type 2 diabetes mellitus", "icd_code": "E11"}
+{"note_id": "3", "patient_id": "54321", "text": "Patient complains of chest pain. ECG shows normal results.", "date": "2023-01-25", "provider": "Dr. Brown", "diagnosis": "Chest pain, unspecified", "icd_code": "R07.9"}

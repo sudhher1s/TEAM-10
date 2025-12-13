@@ -1,0 +1,8 @@
+Code for the file /healthcare-medical-coding-assistant/healthcare-medical-coding-assistant/data/reference/snomed.csv:
+
+id,name,description
+1,Heart Attack,A medical emergency in which the blood supply to the heart is suddenly blocked.
+2,Diabetes Mellitus,A group of diseases that result in high blood sugar (too much glucose) in the blood.
+3,Hypertension,A condition in which the blood vessels have persistently raised pressure.
+4,Asthma,A condition in which your airways narrow and swell and may produce extra mucus.
+5,Chronic Obstructive Pulmonary Disease,A group of lung diseases that block airflow and make it difficult to breathe.
