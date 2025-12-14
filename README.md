@@ -531,4 +531,9 @@ This is a **complete, production-ready medical coding assistant** with:
 **Status**: Production Ready
 
 
+<img width="1847" height="827" alt="Screenshot 2025-12-14 045057" src="https://github.com/user-attachments/assets/84108306-0dfb-4f60-b6e1-f818327080ac" />
+<img width="1862" height="697" alt="Screenshot 2025-12-14 045036" src="https://github.com/user-attachments/assets/dbea3ac9-aa6d-4eb4-8d1b-c91d9f2e7fba" />
 
+<img width="1830" height="845" alt="Screenshot 2025-12-14 044604" src="https://github.com/user-attachments/assets/a1366dd8-5166-4d88-affc-af85ef03ff25" />
+
+<img width="1830" height="845" alt="Screenshot 2025-12-14 044604" src="https://github.com/user-attachments/assets/b9a8b19e-7a94-451e-b7a1-a720ceda1bb4" />
