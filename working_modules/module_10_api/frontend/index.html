@@ -156,13 +156,14 @@
           <div>
             <label for="provider">Provider</label>
             <select id="provider">
-              <option value="mock" selected>Mock (offline)</option>
+              <option value="google" selected>Google Gemini</option>
               <option value="openai">OpenAI</option>
+              <option value="mock">Mock (offline)</option>
             </select>
           </div>
           <div>
             <label for="model">Model</label>
-            <input id="model" value="gpt-3.5-turbo" />
+            <input id="model" value="gemini-2.5-flash" />
           </div>
         </div>
         <div class="actions">
@@ -174,6 +175,20 @@
       <div class="panel" id="panel-chat">
         <label for="chat-input">Ask the Coding Assistant</label>
         <textarea id="chat-input" placeholder="e.g., What ICD-10 code applies to acute cholera?">What ICD-10 code applies to acute cholera?</textarea>
+        <div class="row">
+          <div>
+            <label for="chat-provider">Provider</label>
+            <select id="chat-provider">
+              <option value="google" selected>Google Gemini</option>
+              <option value="openai">OpenAI</option>
+              <option value="mock">Mock (offline)</option>
+            </select>
+          </div>
+          <div>
+            <label for="chat-model">Model</label>
+            <input id="chat-model" value="gemini-2.5-flash" />
+          </div>
+        </div>
         <div class="actions">
           <button id="chat-run">Send</button>
           <span class="status" id="chat-status"></span>
@@ -221,7 +236,7 @@
     document.getElementById('rx-run').addEventListener('click', async () => {
       const q = document.getElementById('rx-input').value.trim();
       const provider = document.getElementById('provider').value;
-      const model = document.getElementById('model').value.trim() || 'gpt-3.5-turbo';
+      const model = document.getElementById('model').value.trim() || 'gemini-2.5-flash';
       const statusEl = document.getElementById('rx-status');
       const resultEl = document.getElementById('rx-result');
       if (!q) { statusText(statusEl, 'Please enter a prescription/note.'); return; }
@@ -231,6 +246,8 @@
         const summary = {
           grounded_codes: data.grounded?.codes,
           confidence: data.grounded?.confidence,
+          model: data.grounded?.model,
+          elapsed_ms: data.grounded?.elapsed_ms,
           explanation: data.grounded?.explanation,
           guardrails: data.guardrails,
           evidence: data.evidence?.items?.slice(0, 3)
@@ -245,16 +262,20 @@
 
     document.getElementById('chat-run').addEventListener('click', async () => {
       const q = document.getElementById('chat-input').value.trim();
+      const provider = document.getElementById('chat-provider').value;
+      const model = document.getElementById('chat-model').value.trim() || 'gemini-2.5-flash';
       const statusEl = document.getElementById('chat-status');
       const resultEl = document.getElementById('chat-result');
       if (!q) { statusText(statusEl, 'Please enter a message.'); return; }
       try {
         statusText(statusEl, 'Thinking...');
-        const data = await callCode(q, 'mock', 'gpt-3.5-turbo');
+        const data = await callCode(q, provider, model);
         const summary = {
           answer: data.grounded?.explanation,
           codes: data.grounded?.codes,
-          confidence: data.grounded?.confidence
+          confidence: data.grounded?.confidence,
+          model: data.grounded?.model,
+          elapsed_ms: data.grounded?.elapsed_ms
         };
         resultEl.textContent = pretty(summary);
         statusText(statusEl, 'Done');

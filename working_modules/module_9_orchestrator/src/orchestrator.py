@@ -15,6 +15,7 @@ except Exception:
 from working_modules.module_6_evidence_extraction.src.evidence_extractor import EvidenceExtractor
 from working_modules.module_7_guardrails.src.guardrails_checker import GuardrailsChecker
 from working_modules.module_8_llm_grounding.src.llm_grounder import LLMGrounder
+from working_modules.module_8_2_google_grounding.src.google_grounder import GoogleGrounder
 
 class MedicalCodingOrchestrator:
     def __init__(
@@ -39,7 +40,11 @@ class MedicalCodingOrchestrator:
             self.reranker = None
         self.extractor = EvidenceExtractor(kb_path)
         self.guardrails = GuardrailsChecker()
-        self.grounder = LLMGrounder(model=llm_model, provider=llm_provider)
+        # Select grounder based on provider
+        if llm_provider == "google":
+            self.grounder = GoogleGrounder(model=llm_model, provider=llm_provider)
+        else:
+            self.grounder = LLMGrounder(model=llm_model, provider=llm_provider)
     
     def run(self, query: str, retrieve_k: int = 100, rerank_k: int = 10) -> Dict[str, Any]:
         # M4: Retrieve
@@ -54,21 +59,46 @@ class MedicalCodingOrchestrator:
             # Fallback: minimal keyword-based candidate selection from KB titles
             kb = getattr(self.extractor, "kb", {})
             scored = []
-            q = query.lower()
+
+            def _tokenize(text: str) -> set:
+                return {tok for tok in text.lower().replace("/", " ").replace("-", " ").split() if tok}
+
+            q_tokens = _tokenize(query)
             if isinstance(kb, dict):
                 itr = [(code, item) for code, item in kb.items()]
             elif isinstance(kb, list):
-                itr = [ (item.get("code"), item) for item in kb ]
+                itr = [(item.get("code"), item) for item in kb]
             else:
                 itr = []
+
             for code, item in itr:
                 if not code or not isinstance(item, dict):
                     continue
-                title = (item.get("title") or "").lower()
-                score = 1.0 if any(t in title for t in q.split()) else 0.0
+                title = (item.get("title") or "")
+                desc = (item.get("description") or "")
+                aliases = " ".join(item.get("aliases", []) or [])
+
+                title_toks = _tokenize(title)
+                desc_toks = _tokenize(desc)
+                alias_toks = _tokenize(aliases)
+
+                # Simple lexical score: overlap across title/aliases/description with weights
+                overlap_title = len(q_tokens & title_toks)
+                overlap_alias = len(q_tokens & alias_toks)
+                overlap_desc = len(q_tokens & desc_toks)
+                score = 3 * overlap_title + 2 * overlap_alias + 1 * overlap_desc
+
                 if score > 0:
-                    scored.append({"code": code, "title": item.get("title"), "category": item.get("category", "unknown"), "index_id": -1, "score": score})
-            candidates = scored[:rerank_k] if scored else []
+                    scored.append({
+                        "code": code,
+                        "title": title,
+                        "category": item.get("category", "unknown"),
+                        "index_id": -1,
+                        "score": float(score),
+                    })
+
+            scored.sort(key=lambda x: x["score"], reverse=True)
+            candidates = scored[: max(rerank_k, 10)] if scored else []
             retrieve_summary = {"elapsed_ms": 0.0, "top_codes": [c["code"] for c in candidates[:5]]}
         
         # M5: Rerank
@@ -107,7 +137,8 @@ class MedicalCodingOrchestrator:
         )
         
         # Convert confidence from 0-1 to 0-100 percentage
-        confidence_pct = int(grounded.llm_response.confidence * 100) if grounded.llm_response.confidence else 0
+        raw_conf = grounded.llm_response.confidence or 0.0
+        confidence_pct = max(0, min(100, int(raw_conf * 100)))
         
         return {
             "query": query,

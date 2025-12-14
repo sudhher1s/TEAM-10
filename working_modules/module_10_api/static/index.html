@@ -132,7 +132,14 @@
             <h3>📝 Clinical Note Input</h3>
             <textarea id="prescriptionText" placeholder="Enter patient clinical note, diagnosis, symptoms, or medical condition..."></textarea>
             <div class="row">
-              <span class="pill">Model: <strong>mock</strong></span>
+              <span class="pill">Provider:
+                <select id="providerSel" style="background:transparent; color:var(--text); border:none; outline:none;">
+                  <option value="google" selected>Google Gemini</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="mock">Mock</option>
+                </select>
+              </span>
+              <span class="pill">Model: <input id="modelInput" type="text" value="gemini-2.5-flash" style="width:140px;" /></span>
               <span class="pill">Retrieve K: <input id="retrieveK" type="number" value="100" min="10" max="500"></span>
               <span class="pill">Rerank K: <input id="rerankK" type="number" value="10" min="3" max="50"></span>
               <button id="btnCode">🔍 Analyze</button>
@@ -169,7 +176,17 @@
                 <span style="color:var(--muted); font-size:13px;">Hello! I'm your medical coding assistant. Ask me about ICD-10 codes, clinical guidelines, code selection rationale, or submit clinical notes for analysis.</span>
               </div>
             </div>
-            <div class="chat-input-row">
+            <div class="row" style="margin-top:10px;">
+              <span class="pill">Provider:
+                <select id="chatProvider" style="background:transparent; color:var(--text); border:none; outline:none;">
+                  <option value="google" selected>Google Gemini</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="mock">Mock</option>
+                </select>
+              </span>
+              <span class="pill">Model: <input id="chatModel" type="text" value="gemini-2.5-flash" style="width:140px;" /></span>
+            </div>
+            <div class="chat-input-row" style="margin-top:10px;">
               <input type="text" id="chatInput" placeholder="Ask about codes, guidelines, or submit clinical notes..." />
               <button id="btnChat">Send</button>
             </div>
@@ -255,7 +272,7 @@
             <div style="font-size:12px; color:var(--muted); line-height:1.8;">
               <strong style="color:var(--success);">✓ Active</strong><br/>
               Generates clinical reasoning<br/>
-              <span style="font-size:11px; color:var(--muted);">Provider: mock (offline)</span>
+              <span style="font-size:11px; color:var(--muted);">Provider: Google/OpenAI/Mock</span>
             </div>
           </div>
           
@@ -309,6 +326,8 @@
     const prescriptionText = document.getElementById('prescriptionText');
     const retrieveK = document.getElementById('retrieveK');
     const rerankK = document.getElementById('rerankK');
+    const providerSel = document.getElementById('providerSel');
+    const modelInput = document.getElementById('modelInput');
     const codesOut = document.getElementById('codesOut');
     const llmOut = document.getElementById('llmOut');
 
@@ -329,47 +348,52 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             query: prescriptionText.value,
-            provider: 'mock',
+            provider: providerSel.value || 'google',
+            model: modelInput.value.trim() || 'gemini-2.5-flash',
             retrieve_k: parseInt(retrieveK.value || '100', 10),
             rerank_k: parseInt(rerankK.value || '10', 10),
-            kb_path: 'c:/MY PROJECTS/GEN AI/working_modules/module_1_data_kb/output/kb.json'
+            kb_path: 'c:/MY PROJECTS/GEN AI/working_modules/module_1_data_kb/output/kb.json',
+            index_path: 'c:/MY PROJECTS/GEN AI/working_modules/output/faiss.index',
+            metadata_path: 'c:/MY PROJECTS/GEN AI/working_modules/output/item_metadata.json'
           })
         });
 
         if (!resp.ok) throw new Error(`API error ${resp.status}`);
         const data = await resp.json();
 
-        // Display evidence
+        // Display grounded recommendations (primary)
         codesOut.innerHTML = '';
-        const items = (data.evidence?.items) || [];
+        const groundedCodes = Array.isArray(data.grounded?.codes) ? data.grounded.codes : [];
+        const confidence = data.grounded?.confidence || 0;
+        const modelUsed = data.grounded?.model || 'n/a';
+        const elapsed = data.grounded?.elapsed_ms || 0;
+        const warnings = (data.guardrails?.violations || []).map(v => `<li>${v.message || v.severity}</li>`).join('');
+        const evidenceItems = (data.evidence?.items) || [];
 
-        if (items.length === 0) {
-          codesOut.innerHTML = '<div class="item"><span class="badge warn">No Results</span><div class="desc">No matching codes found.</div></div>';
+        if (groundedCodes.length === 0) {
+          codesOut.innerHTML = '<div class="item"><span class="badge warn">No Codes</span><div class="desc">LLM did not return specific codes. Check explanation.</div></div>';
         } else {
-          items.forEach((ev) => {
-            // Handle relevance_score properly (it's 0-1 scale)
+          groundedCodes.forEach(code => {
+            const ev = evidenceItems.find(e => e.code === code) || {};
             let relevance = Math.round((ev.relevance_score || 0) * 100);
+            if (isNaN(relevance)) relevance = 0;
             if (relevance > 100) relevance = 100;
             if (relevance < 0) relevance = 0;
-            
             const description = ev.description || 'No description';
-            const aliases = ev.aliases && ev.aliases.length > 0 ? ev.aliases.join(', ') : '';
+            const aliases = ev.aliases && ev.aliases.length ? ev.aliases.join(', ') : '';
             const category = ev.category || 'General';
+            let badgeColor = 'linear-gradient(135deg, var(--accent), var(--accent-2))';
+            if (relevance >= 75) badgeColor = 'linear-gradient(135deg, var(--success), var(--accent))';
+            else if (relevance < 50) badgeColor = 'linear-gradient(135deg, var(--warn), var(--accent))';
 
             const div = document.createElement('div');
             div.className = 'item';
-            
-            // Color-code the relevance badge
-            let badgeColor = 'linear-gradient(135deg, var(--success), var(--accent))';
-            if (relevance < 50) badgeColor = 'linear-gradient(135deg, var(--warn), var(--accent))';
-            else if (relevance < 75) badgeColor = 'linear-gradient(135deg, var(--accent), var(--accent-2))';
-            
             div.innerHTML = `
               <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                <div class="code">${ev.code}</div>
-                <span class="badge" style="background:${badgeColor};">${relevance}% Match</span>
+                <div class="code">${code}</div>
+                <span class="badge" style="background:${badgeColor};">${relevance || 0}% match</span>
               </div>
-              <div class="title">${ev.title}</div>
+              <div class="title">${ev.title || 'Code from LLM recommendation'}</div>
               <div class="desc"><strong>📝</strong> ${description}</div>
               ${aliases ? `<div class="desc" style="margin-top:4px;"><strong>🔗</strong> ${aliases}</div>` : ''}
               <div class="meta">
@@ -381,17 +405,14 @@
           });
         }
 
-        // Display recommendations
-        const codes = (data.grounded?.codes || []).join(', ') || 'None';
-        const confidence = data.grounded?.confidence || 0;
+        // Display LLM explanation and metadata
         const explanation = data.grounded?.explanation || 'No reasoning available';
-        const warnings = (data.guardrails?.violations || []).map(v => `<li>${v.message || v.severity}</li>`).join('');
-
         llmOut.innerHTML = `
           <div class="rec-panel">
             <h4>Top Code Recommendations</h4>
-            <div class="item-row"><strong>Codes:</strong> <span style="color:var(--accent); font-weight:700;">${codes}</span></div>
+            <div class="item-row"><strong>Codes:</strong> <span style="color:var(--accent); font-weight:700;">${groundedCodes.join(', ') || 'None'}</span></div>
             <div class="item-row"><strong>Confidence:</strong> <span style="color:var(--success); font-weight:700;">${confidence}%</span></div>
+            <div class="item-row"><strong>Model:</strong> <span>${modelUsed}</span> <span style="color:var(--muted);">(${elapsed.toFixed ? elapsed.toFixed(0) : elapsed} ms)</span></div>
           </div>
           <div style="margin-top:16px; line-height:1.8; color:var(--text);">
             <strong style="color:var(--accent);">Clinical Reasoning:</strong><br/><br/>
@@ -414,6 +435,8 @@
     const chatInput = document.getElementById('chatInput');
     const chatLog = document.getElementById('chatLog');
     const chatOut = document.getElementById('chatOut');
+    const chatProvider = document.getElementById('chatProvider');
+    const chatModel = document.getElementById('chatModel');
 
     async function sendChat() {
       const msg = chatInput.value.trim();
@@ -433,10 +456,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             query: msg,
-            provider: 'mock',
+            provider: chatProvider.value || 'google',
+            model: chatModel.value.trim() || 'gemini-2.5-flash',
             retrieve_k: 50,
             rerank_k: 5,
-            kb_path: 'c:/MY PROJECTS/GEN AI/working_modules/module_1_data_kb/output/kb.json'
+            kb_path: 'c:/MY PROJECTS/GEN AI/working_modules/module_1_data_kb/output/kb.json',
+            index_path: 'c:/MY PROJECTS/GEN AI/working_modules/output/faiss.index',
+            metadata_path: 'c:/MY PROJECTS/GEN AI/working_modules/output/item_metadata.json'
           })
         });
 
@@ -448,6 +474,8 @@
         const codes = Array.isArray(codesArray) ? codesArray.join(', ') : String(codesArray || 'N/A');
         const confidence = data.grounded?.confidence || 0;
         const explanation = data.grounded?.explanation || 'No response generated';
+        const modelUsed = data.grounded?.model || 'n/a';
+        const elapsed = data.grounded?.elapsed_ms || 0;
         
         // Format the response
         chatOut.innerHTML = `
@@ -457,6 +485,9 @@
           </div>
           <div style="margin-bottom:10px; padding:10px; background:rgba(16, 185, 129, .1); border-radius:8px;">
             <strong style="color:var(--success);">Confidence:</strong> <span style="font-size:13px; color:var(--success); font-weight:700;">${confidence}%</span>
+          </div>
+          <div style="margin-bottom:10px; padding:10px; background:rgba(167, 139, 250, .1); border-radius:8px;">
+            <strong style="color:var(--accent-2);">Model:</strong> <span style="font-size:13px; color:var(--text);">${modelUsed}</span> <span style="color:var(--muted);">(${elapsed.toFixed ? elapsed.toFixed(0) : elapsed} ms)</span>
           </div>
           <div style="margin-top:12px; padding:12px; background:rgba(20, 27, 45, .5); border-radius:8px; line-height:1.6; font-size:12px;">
             <strong style="color:var(--accent);">Clinical Analysis:</strong><br/>

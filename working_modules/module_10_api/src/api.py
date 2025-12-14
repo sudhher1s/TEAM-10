@@ -13,7 +13,7 @@ class QueryRequest(BaseModel):
     query: str
     retrieve_k: int = 100
     rerank_k: int = 10
-    provider: str = "mock"  # "openai" or "mock"
+    provider: str = "mock"  # "openai", "google", or "mock"
     model: Optional[str] = "gpt-3.5-turbo"
     index_path: Optional[str] = "c:/MY PROJECTS/GEN AI/working_modules/module_3_vector_index/index.faiss"
     metadata_path: Optional[str] = "c:/MY PROJECTS/GEN AI/working_modules/module_2_embeddings/item_metadata.json"

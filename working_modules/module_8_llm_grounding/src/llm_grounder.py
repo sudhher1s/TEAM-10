@@ -3,6 +3,7 @@ Module 8: LLM Grounding
 Generates clinically-grounded responses using OpenAI/Claude API.
 Responses are grounded in retrieved evidence and validated by guardrails.
 """
+import os
 import time
 import json
 from typing import List, Optional, Dict
@@ -36,25 +37,26 @@ class LLMGrounder:
         """
         # Initialize provider; allow mock for offline use
         if provider == "openai" and OpenAI is None:
-            # Defer hard failure; we will switch to mock mode later
             provider = "mock"
-        
-        self.api_key = api_key
+
+        # Never persist API keys; read from env if not provided
+        key_from_env = api_key or os.getenv("OPENAI_API_KEY")
+
         self.model = model
         self.provider = provider
-        
-        # Initialize OpenAI client if applicable
+
+        # Initialize OpenAI client if applicable; fall back safely to mock
         self.client = None
         if self.provider == "openai":
-            try:
-                if api_key:
-                    self.client = OpenAI(api_key=api_key)
-                else:
-                    self.client = OpenAI()  # Uses env var
-            except Exception:
-                # Fall back to mock provider
+            if not key_from_env:
+                # No key available; harden by switching to mock mode
                 self.provider = "mock"
-                self.client = None
+            else:
+                try:
+                    self.client = OpenAI(api_key=key_from_env)
+                except Exception:
+                    self.provider = "mock"
+                    self.client = None
     
     def _build_prompt(
         self,
