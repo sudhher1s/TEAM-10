@@ -1,0 +1,35 @@
+{
+  "name": "healthcare-medical-coding-assistant",
+  "version": "1.0.0",
+  "description": "A medical coding assistant that utilizes machine learning to assist in coding clinical notes.",
+  "main": "src/app.ts",
+  "scripts": {
+    "start": "ts-node src/app.ts",
+    "test": "jest",
+    "prepare": "ts-node scripts/prepare-data.ts",
+    "train": "ts-node scripts/train.ts",
+    "evaluate": "ts-node scripts/evaluate.ts"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "cors": "^2.8.5",
+    "body-parser": "^1.19.0",
+    "mongoose": "^5.10.9",
+    "typescript": "^4.1.2",
+    "ts-node": "^9.1.1",
+    "jest": "^26.6.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.8",
+    "@types/jest": "^26.0.0",
+    "@types/node": "^14.14.31"
+  },
+  "keywords": [
+    "healthcare",
+    "medical coding",
+    "machine learning",
+    "assistant"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

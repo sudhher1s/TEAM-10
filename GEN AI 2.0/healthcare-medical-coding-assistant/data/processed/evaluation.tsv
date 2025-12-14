@@ -1,0 +1,11 @@
+id	description	code
+1	Diabetes Type 2	E11
+2	Hypertension	I10
+3	Chronic Kidney Disease	N18
+4	Asthma	J45
+5	Heart Failure	I50
+6	Obesity	E66
+7	Chronic Obstructive Pulmonary Disease	J44
+8	Anxiety Disorder	F41
+9	Depression	F32
+10	Acute Respiratory Infection	J20

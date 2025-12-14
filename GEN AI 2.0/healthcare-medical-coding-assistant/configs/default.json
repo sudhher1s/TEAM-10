@@ -1,0 +1,28 @@
+{
+  "server": {
+    "port": 8000,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["*"]
+    }
+  },
+  "database": {
+    "url": "mongodb://localhost:27017/healthcare",
+    "options": {
+      "useNewUrlParser": true,
+      "useUnifiedTopology": true
+    }
+  },
+  "logging": {
+    "level": "info",
+    "file": "logs/app.log"
+  },
+  "api": {
+    "version": "v1",
+    "basePath": "/api"
+  },
+  "healthCheck": {
+    "interval": 30000
+  }
+}

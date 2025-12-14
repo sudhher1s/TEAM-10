@@ -1,0 +1,11 @@
+PatientID	EncounterID	ClinicalNote	ICD10Code
+12345	67890	Patient presents with fever and cough.	 J20.9
+12346	67891	Patient diagnosed with diabetes mellitus.	E11.9
+12347	67892	Patient has a history of hypertension.	I10
+12348	67893	Patient experienced chest pain.	I20.9
+12349	67894	Patient has a sprained ankle.	S93.401A
+12350	67895	Patient is experiencing shortness of breath.	J44.9
+12351	67896	Patient has a urinary tract infection.	N39.0
+12352	67897	Patient presents with abdominal pain.	R10.9
+12353	67898	Patient has a history of asthma.	J45.909
+12354	67899	Patient diagnosed with major depressive disorder.	F33.9

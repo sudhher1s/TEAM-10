@@ -1,0 +1,16 @@
+uvicorn==0.32.0
+rank-bm25==0.2.2
+python-dotenv==1.0.1
+starlette==0.41.3
+# AI Components - 95% AI powered system
+sentence-transformers>=2.2.0  # Semantic search with Sentence Transformers
+torch>=1.13.0  # Neural network backend
+scipy>=1.9.0  # Scientific computing
+scikit-learn>=1.0.0  # ML utilities
+openai>=1.0.0  # GPT-4 integration for LLM reranking
+numpy>=1.20.0  # Array operations
+# Additional AI/ML libraries
+tensorflow>=2.11.0  # Optional: For advanced neural network classifier
+# Utilities
+pyjwt>=2.8.0
+bcrypt>=4.1.0
