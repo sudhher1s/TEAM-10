@@ -1,0 +1,32 @@
+# Virtual environments
+venv/
+.venv/
+.venv_m2/
+**/.venv*/
+**/site-packages/
+**/__pycache__/
+
+# Large ML/AI model files
+*.npy
+*.index
+*.faiss
+*.lib
+*.dll
+*.pth
+*.bin
+*.onnx
+
+# Output directories with large files
+working_modules/output/
+**/output/*.npy
+**/output/*.faiss
+**/output/*.index
+
+# PyTorch and large dependencies
+**/torch/lib/*.lib
+**/torch/lib/*.dll
+**/torch/lib/*.so
+**/kineto.lib
+**/dnnl.lib
+**/torch_cpu.dll
+
